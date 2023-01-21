@@ -1,0 +1,42 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+:root {
+  --fair-gray: #e6e6e6;
+  --bg: --fair-gray;
+  --font-color: black;
+}
+
+:root {
+  --fair-gray: #e6e6e6;
+  --bg: --fair-gray;
+  --font-color: black;
+}
+
+#navbar {
+  width: 100%;
+  padding: 20px 30px 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+#navbar * {
+  font-size: 16px;
+  text-decoration: none;
+  margin: 0 10px;
+  padding: 5px 10px;
+  display: inline-block;
+}
+
+* {
+  font-family: "Poppins", sans-serif;
+  box-sizing: border-box;
+  transition: 0.15s;
+}
+
+body {
+  background-color: var(--bg);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}/*# sourceMappingURL=main.css.map */
