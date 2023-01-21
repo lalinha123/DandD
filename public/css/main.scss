@@ -15,3 +15,44 @@ body {
     padding: 0;
     overflow-x: hidden;
 }
+
+form {
+    &.form-btn {
+        width: fit-content !important;
+        height: fit-content !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+}
+
+button, input[type='submit'] {
+    border: 1px solid var(--font-color);
+    border-radius: 30px;
+    outline: none;
+
+    padding: 5px 20px !important;
+
+    &:hover {
+        cursor: pointer;
+        transform: scale(105%);
+    }
+
+    &:active {
+        transform: scale(98%);
+    }
+}
+
+a {
+    color: var(--font-color);
+    text-decoration: none;
+
+    &:active {
+        color: var(--font-color);
+    }
+}
+
+p {
+    &:hover {
+        cursor: default;
+    }
+}

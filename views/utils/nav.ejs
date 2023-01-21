@@ -3,10 +3,12 @@
     <div class="links">
         <% if (session) { %>
             <p><%= user.username %></p>
-            <form class="form-btn" ><input type="submit" value="log out"></input></form>
+            <form class="form-btn" method="GET" action="/logout" >
+                <input type="submit" value="log out"></input>
+            </form>
         <% } else { %>
             <a href="/login">Log in</a>
             <a href="/register">Register</a>
-        <% } %>
+        <% } %> 
     </div>
 </nav>

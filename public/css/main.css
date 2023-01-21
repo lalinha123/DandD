@@ -22,10 +22,21 @@
 }
 #navbar * {
   font-size: 16px;
-  text-decoration: none;
-  margin: 0 10px;
-  padding: 5px 10px;
+  margin: 0 20px;
+  padding: 5px;
   display: inline-block;
+}
+#navbar *:hover {
+  cursor: default;
+}
+#navbar a:hover {
+  cursor: pointer;
+}
+#navbar .links a {
+  border-bottom: 3px solid transparent;
+}
+#navbar .links a:hover {
+  border-color: var(--font-color);
 }
 
 * {
@@ -39,4 +50,41 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+}
+
+form.form-btn {
+  width: -webkit-fit-content !important;
+  width: -moz-fit-content !important;
+  width: fit-content !important;
+  height: -webkit-fit-content !important;
+  height: -moz-fit-content !important;
+  height: fit-content !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+button, input[type=submit] {
+  border: 1px solid var(--font-color);
+  border-radius: 30px;
+  outline: none;
+  padding: 5px 20px !important;
+}
+button:hover, input[type=submit]:hover {
+  cursor: pointer;
+  transform: scale(105%);
+}
+button:active, input[type=submit]:active {
+  transform: scale(98%);
+}
+
+a {
+  color: var(--font-color);
+  text-decoration: none;
+}
+a:active {
+  color: var(--font-color);
+}
+
+p:hover {
+  cursor: default;
 }/*# sourceMappingURL=main.css.map */
