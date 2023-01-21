@@ -33,7 +33,7 @@ button, input[type='submit'] {
     padding: 5px 20px !important;
 
     &:hover {
-        cursor: pointer;
+        cursor: pointer !important;
         transform: scale(105%);
     }
 

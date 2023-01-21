@@ -1,14 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
 :root {
-  --fair-gray: #e6e6e6;
-  --bg: --fair-gray;
-  --font-color: black;
-}
-
-:root {
-  --fair-gray: #e6e6e6;
-  --bg: --fair-gray;
+  --fair-gray: #eeeeee;
+  --bg: var(--fair-gray);
   --font-color: black;
 }
 
@@ -70,7 +63,7 @@ button, input[type=submit] {
   padding: 5px 20px !important;
 }
 button:hover, input[type=submit]:hover {
-  cursor: pointer;
+  cursor: pointer !important;
   transform: scale(105%);
 }
 button:active, input[type=submit]:active {

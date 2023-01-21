@@ -73,7 +73,7 @@ app.post('/login', (req, res) => {
     {$username: username_in}, (err, userdata) => {
 
         if (!username_in || !password_in) {
-            render('Please, fill all the inputs.');
+            render('Please, fill all the blank areas.');
         } else if (!userdata) {
             render('This user does not exist.');
 
@@ -107,25 +107,28 @@ app.post('/register', (req, res) => {
     const password_in = req.body.password;
 
     db.get('SELECT id FROM users ORDER BY id DESC LIMIT 1', (err, row) => {
-        const id = Number(row.id) + 1;
+        const id = row ? Number(row.id) + 1 : 1;
 
-        db.get('SELECT username FROM users WHERE username = $username', 
-        {
-            $username: username_in
-        }, (err, row_name) => {
-            if (!row_name) {
-                db.run('INSERT INTO users (id, username, password) VALUES ($id, $username, $password)',
-                {
-                    $id: id,
-                    $username: username_in,
-                    $password: password_in
-                }, () => {
-                    res.redirect('/');
-                });
-            } else {
-                res.render('register', {msg: 'This username has been already used.'});
-            }
-        });
+        if (!username_in || !password_in) {
+            res.render('register', {msg: 'Please, fill all the blank areas.'});
+        } else {
+            db.get('SELECT username FROM users WHERE username = $username', 
+            { $username: username_in }, (err, row_name) => {
+                if (!row_name) {
+                    db.run('INSERT INTO users (id, username, password) VALUES ($id, $username, $password)',
+                    {
+                        $id: id,
+                        $username: username_in,
+                        $password: password_in
+                    }, () => {
+                        res.redirect('/');
+                    });
+                } else {
+                    res.render('register', {msg: 'This username has been already used.'});
+                }
+            });
+
+        }
     });
 });
 

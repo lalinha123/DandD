@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 
 :root {
-    --fair-gray: #e6e6e6;
+    --fair-gray: #eeeeee;
 
-    --bg: --fair-gray;
+    --bg: var(--fair-gray);
     --font-color: black;
 }
 
