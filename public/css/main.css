@@ -1,7 +1,12 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
 :root {
   --fair-gray: #eeeeee;
+  --light-gray: #bbbbbb;
+  --medium-gray: #858585;
+  --pink: #e7aaaa;
   --bg: var(--fair-gray);
+  --bg2: #ffffffda;
+  --sec-color: var(--pink);
   --font-color: black;
 }
 
@@ -28,7 +33,7 @@
 #navbar .links a {
   border-bottom: 3px solid transparent;
 }
-#navbar .links a:hover {
+#navbar .links a:hover, #navbar .links a.active {
   border-color: var(--font-color);
 }
 
@@ -45,29 +50,8 @@ body {
   overflow-x: hidden;
 }
 
-form.form-btn {
-  width: -webkit-fit-content !important;
-  width: -moz-fit-content !important;
-  width: fit-content !important;
-  height: -webkit-fit-content !important;
-  height: -moz-fit-content !important;
-  height: fit-content !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-button, input[type=submit] {
-  border: 1px solid var(--font-color);
-  border-radius: 30px;
-  outline: none;
-  padding: 5px 20px !important;
-}
-button:hover, input[type=submit]:hover {
-  cursor: pointer !important;
-  transform: scale(105%);
-}
-button:active, input[type=submit]:active {
-  transform: scale(98%);
+h1, h2, h3 {
+  margin: 0 0 3vh;
 }
 
 a {
@@ -80,4 +64,80 @@ a:active {
 
 p:hover {
   cursor: default;
+}
+
+input, select, textarea {
+  font-size: 16px;
+  width: 100%;
+  border: 1px solid var(--medium-gray);
+  border-radius: 8px;
+  outline: none;
+  margin: 0 0 10px;
+  padding: 8px 20px !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--font-color);
+}
+
+button, input[type=submit] {
+  background-color: inherit;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  border: 1px solid var(--font-color);
+  outline: none;
+  border-radius: 8px;
+  padding: 8px 20px !important;
+}
+button:hover, input[type=submit]:hover {
+  cursor: pointer !important;
+  transform: scale(105%);
+}
+button:active, input[type=submit]:active {
+  transform: scale(98%);
+}
+
+main {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  top: 5vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+form {
+  background-color: var(--bg2);
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  border-radius: 15px;
+  padding: 30px;
+  -webkit-backdrop-filter: blur(5px);
+          backdrop-filter: blur(5px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+}
+form.form-btn {
+  background-color: transparent;
+  width: -webkit-fit-content !important;
+  width: -moz-fit-content !important;
+  width: fit-content !important;
+  height: -webkit-fit-content !important;
+  height: -moz-fit-content !important;
+  height: fit-content !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+form .elements {
+  width: 100%;
+}
+form .msg {
+  text-align: center;
+  font-size: 14px;
 }/*# sourceMappingURL=main.css.map */

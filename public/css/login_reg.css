@@ -1,0 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+:root {
+  --fair-gray: #eeeeee;
+  --light-gray: #bbbbbb;
+  --medium-gray: #858585;
+  --pink: #e7aaaa;
+  --bg: var(--fair-gray);
+  --bg2: #ffffffda;
+  --sec-color: var(--pink);
+  --font-color: black;
+}
+
+#login, #register {
+  width: 350px;
+  height: 60vh;
+}
+#login input[type=submit], #register input[type=submit] {
+  background-color: var(--sec-color);
+  border: none;
+}/*# sourceMappingURL=login_reg.css.map */

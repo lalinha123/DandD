@@ -1,0 +1,11 @@
+@import '_variables.scss';
+
+#login, #register {
+    width: 350px;
+    height: 60vh;
+
+    & input[type="submit"] {
+        background-color: var(--sec-color);
+        border: none;
+    }
+}

@@ -121,7 +121,15 @@ app.post('/register', (req, res) => {
                         $username: username_in,
                         $password: password_in
                     }, () => {
-                        res.redirect('/');
+                        db.get('SELECT * FROM users WHERE username = $username',
+                        {$username: username_in}, (err, userdata) => {
+                            if  (!err) {
+                                session = req.session;
+                                session.userid = userdata.id;
+                                session.user = userdata;
+                                res.redirect('/');
+                            }
+                        });
                     });
                 } else {
                     res.render('register', {msg: 'This username has been already used.'});

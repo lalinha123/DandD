@@ -5,19 +5,23 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" type="text/css" href="css/login_reg.css">
     <title>Register</title>
 </head>
 <body>
-    <%- include('utils/nav', {session: null}) %>
+    <%- include('utils/nav', {active: 'register', session: null}) %>
 
-    <h1>Register</h1>
-    <form id="register" action="/register" method="POST">
-        <input type="text" name="username" id="username" placeholder="username">
-        <br>
-        <input type="password" name="password" id="password" placeholder="password">
-        <br><br>
-        <input type="submit" value="Register">
-    </form>
-    <p><%= msg %></p>
+    <main>
+        <form id="register" action="/register" method="POST">
+            <h1>Register</h1>
+            <div class="elements">
+                <input type="text" name="username" id="username" placeholder="username">
+                <br>
+                <input type="password" name="password" id="password" placeholder="password">
+                <p class="msg"><%= msg %></p>
+            </div>
+            <input type="submit" value="Register">
+        </form>
+    </main>
 </body>
 </html>

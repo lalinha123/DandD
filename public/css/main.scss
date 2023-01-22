@@ -10,36 +10,15 @@
 
 body {
     background-color: var(--bg);
-
     margin: 0;
     padding: 0;
+
     overflow-x: hidden;
 }
 
-form {
-    &.form-btn {
-        width: fit-content !important;
-        height: fit-content !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-}
-
-button, input[type='submit'] {
-    border: 1px solid var(--font-color);
-    border-radius: 30px;
-    outline: none;
-
-    padding: 5px 20px !important;
-
-    &:hover {
-        cursor: pointer !important;
-        transform: scale(105%);
-    }
-
-    &:active {
-        transform: scale(98%);
-    }
+// TEXT TAGS
+h1, h2, h3 {
+    margin: 0 0 3vh;
 }
 
 a {
@@ -54,5 +33,80 @@ a {
 p {
     &:hover {
         cursor: default;
+    }
+}
+
+// ELEMENT TAGS
+input, select, textarea {
+    font-size: 16px;
+    width: 100%;
+    border: 1px solid var(--medium-gray);
+    border-radius: $round;
+    outline: none;
+    margin: 0 0 10px;
+    padding: $padding-element;
+
+    &:focus {
+        border-color: var(--font-color);
+    }
+}
+
+button, input[type='submit'] {
+    background-color: inherit;
+    width: fit-content;
+    border: $border;
+    outline: none;
+    border-radius: $round;
+    padding: $padding-element;
+
+    &:hover {
+        cursor: pointer !important;
+        transform: scale(105%);
+    }
+
+    &:active {
+        transform: scale(98%);
+    }
+}
+
+
+// CONTAINER TAGS
+main {
+    width: 100%;
+    height: 100%;
+
+    position: relative;
+    top: 5vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+form {
+    @include box();
+
+    text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+
+    &.form-btn {
+        background-color: transparent;
+        width: fit-content !important;
+        height: fit-content !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    & .elements {
+        width: 100%;
+    }
+
+    & .msg {
+        text-align: center;
+        font-size: 14px;
     }
 }

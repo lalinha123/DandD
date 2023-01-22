@@ -27,7 +27,7 @@
     & .links a {
         border-bottom: 3px solid transparent;
 
-        &:hover {
+        &:hover, &.active {
             border-color: var(--font-color);
         }
     }
