@@ -12,7 +12,7 @@
 
 #login, #register {
   width: 350px;
-  height: 60vh;
+  height: 65vh;
 }
 #login input[type=submit], #register input[type=submit] {
   background-color: var(--sec-color);

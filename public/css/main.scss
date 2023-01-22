@@ -52,7 +52,6 @@ input, select, textarea {
 }
 
 button, input[type='submit'] {
-    background-color: inherit;
     width: fit-content;
     border: $border;
     outline: none;
@@ -99,6 +98,8 @@ form {
         height: fit-content !important;
         margin: 0 !important;
         padding: 0 !important;
+
+        backdrop-filter: none;
     }
 
     & .elements {

@@ -1,4 +1,5 @@
 #navbar {
+    background-color: inherit;
     width: 100%;
     padding: 20px 30px 10px;
     display: flex;
@@ -9,12 +10,16 @@
     & * {
         font-size: 16px;
 
-        margin: 0 20px;
+        margin: 0 25px;
         padding: 5px;
         display: inline-block;
 
         &:hover {
             cursor: default;
+        }
+
+        &::selection {
+            user-select: none;
         }
     }
 
@@ -24,11 +29,56 @@
         }
     }
 
+    & .links {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
     & .links a {
         border-bottom: 3px solid transparent;
 
         &:hover, &.active {
             border-color: var(--font-color);
         }
+    }
+
+    & #profile-links {
+        margin: 0 0 0 20px;
+        padding: 0;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: right;
+
+        * {
+            margin: 0;
+        }
+
+        & *:hover, &:hover {
+            cursor: pointer;
+        }
+
+        #profile-img {
+            $size: 40px;
+
+            width: $size;
+            height: $size;
+            border-radius: 50%;
+            margin: 0 5px;
+            padding: 0;
+        }
+
+        #profile-button {
+            font-size: 21px;
+        }
+    }
+
+    & #dropdown {
+        display: none;
+        position: absolute;
+        top: 70px;
+        right: 20px;
     }
 }

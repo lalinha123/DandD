@@ -1,14 +1,31 @@
 <nav id="navbar">
     <a href="/">Home</a>
     <div class="links">
+        <a href="">asdfsdfsdf</a>
         <% if (session) { %>
-            <p><%= user.username %></p>
-            <form class="form-btn" method="GET" action="/logout" >
-                <input type="submit" value="log out"></input>
-            </form>
+            <div id="profile-links">
+                <img id="profile-img" src="img/profile.png">
+                <p><%= user.username %></p>
+                <span id="profile-button" class="material-symbols-outlined">expand_more</span>
+            </div>
         <% } else { %>
             <a href="/login" <% if (active === 'login') {%> class="active" <% } %>>Log in</a>
             <a href="/register" <% if (active === 'register') {%> class="active" <% } %>>Register</a>
         <% } %> 
     </div>
+    <div id="dropdown">
+        <form class="form-btn" method="GET" action="/logout" >
+            <input type="submit" value="log out"></input>
+        </form>
+    </div>
 </nav>
+
+<script>
+    $('#profile-links').click(() => {
+        const dropdown = $('#dropdown');
+        const profileButton = $('#profile-button');
+        dropdown.toggle();
+
+        dropdown.css('display') === 'none' ? profileButton.html('expand_more') : profileButton.html('expand_less');
+    });
+</script>
