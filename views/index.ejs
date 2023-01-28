@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="css/main.css">
-    <title>Home</title>
+    <title>Home :)</title>
 </head>
 <body>
-    <%- include('utils/nav', {active: 'home', user: user, session: session}) %>
-
-    <main>
-        <h1>Hey!</h1>
-    </main>
+    <h2><%= session ? `Hello, ${session.user.nickname}!!` : 'Hello, stranger!!'; %></h2>
+    <% if (session) { %><form action="/logout"><input type="submit" value="Logout"></form><% } %>
 </body>
 </html>
