@@ -7,7 +7,16 @@
     <title>Home :)</title>
 </head>
 <body>
-    <h2><%= session ? `Hello, ${session.user.nickname}!!` : 'Hello, stranger!!'; %></h2>
-    <% if (session) { %><form action="/logout"><input type="submit" value="Logout"></form><% } %>
+    <% if (session) { %>
+        <h2>Hello, <%= session.user.nickname %>!!</h2>
+        <form action="/logout"><input type="submit" value="Logout"></form>
+
+        <section id="myparties">
+            <h2>My parties</h2>
+            <a href="/parties/create">Create new party</a>
+        </section>
+    <% } else { %>
+        <h2>Hello, stranger!!</h2>
+    <% } %>
 </body>
 </html>

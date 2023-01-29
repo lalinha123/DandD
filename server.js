@@ -19,6 +19,17 @@ app.set('view engine', 'ejs');
 const sqlite = require('sqlite3');
 const db = new sqlite.Database('database.db3');
 
+const createId = id => {
+    id = id.toString();
+    const numChar = 9;
+
+    while (id.length < numChar) {
+        id = '0' + id;
+    }
+
+    return id;
+}
+
 
 // -------------------------------------------------------------------
 // INITIALIZE SESSION
@@ -49,6 +60,11 @@ const startSession = (req, data) => {
 
 // -------------------------------------------------------------------
 // APP ROUTERS
+const routes = ['parties'];
+routes.forEach(route => {
+    app.use(`/${route}`, require(__dirname + `/routers/${route}_router.js`));
+});
+
 app.get('/', (req, res) => {
     if (session) {
         res.render('index', {session: session});
@@ -95,7 +111,7 @@ app.post('/signup', (req, res) => {
         {$nickname: nickname}, (err, data) => {
             if (!data) {
                 db.get('SELECT id FROM users ORDER BY id DESC LIMIT 1', (err, iddata) => {
-                    const id = iddata ? iddata.id++ : 1;
+                    const id = iddata ? createId(iddata.id++) : createId(1);
                     db.run('INSERT INTO users (id, nickname, password) VALUES ($id, $nickname, $password)',
                     {$id: id, $nickname: nickname, $password: password}, (err) => {
                         if (!err) {
