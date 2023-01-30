@@ -88,7 +88,8 @@ app.post('/signup', (req, res) => {
         {$nickname: nickname}, (err, data) => {
             if (!data) {
                 db.get('SELECT id FROM users ORDER BY id DESC LIMIT 1', (err, iddata) => {
-                    const id = iddata ? createId(iddata.id++) : createId(1);
+                    const id = iddata ? createId(Number(iddata.id) + 1) : createId(1);
+                    console.log(id);
 
                     db.run('INSERT INTO users (id, nickname, password) VALUES ($id, $nickname, $password)',
                     {$id: id, $nickname: nickname, $password: password}, (err) => {
