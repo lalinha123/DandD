@@ -8,5 +8,20 @@
 </head>
 <body>
     <h2>Create your parties here!!!!</h2>
+
+    <% if (user) { %>
+        <h2></h2>
+        <form action="/parties/create" method="POST" id="<%= user.id %>">
+            <input type="text" name="name" id="name" placeholder="name"><br>
+            <input type="password" name="password" id="password" placeholder="password"><br>
+            <label for="">Max participants</label><input type="number" name="maxparticipants" id="maxparticipants"><br>
+            <label for="">Min participants</label><input type="number" name="minparticipants" id="minparticipants"><br>
+            <br><input type="submit" value="Create party">
+        </form>
+    <% } else { %>
+        <h2>uh oh!</h2>
+        <p>It seems you're not logged in yet!</p>
+        <p>click <a href="/login">here</a> to log in or <a href="/signup">here</a> to sign up!!!</p>
+    <% } %>
 </body>
 </html>

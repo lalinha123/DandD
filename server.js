@@ -2,6 +2,7 @@
 const express = require('express');
 const sessions = require('express-session');
 const cookieParser = require('cookie-parser');
+const { createId, getRandomStr } = require(__dirname + '/utils/utils');
 
 const app = express();
 const port = 8080;
@@ -19,30 +20,9 @@ app.set('view engine', 'ejs');
 const sqlite = require('sqlite3');
 const db = new sqlite.Database('database.db3');
 
-const createId = id => {
-    id = id.toString();
-    const numChar = 9;
-
-    while (id.length < numChar) {
-        id = '0' + id;
-    }
-
-    return id;
-}
-
 
 // -------------------------------------------------------------------
 // INITIALIZE SESSION
-const getRandomStr = () => {
-    let str = '';
-
-    do {
-        str += Math.random().toString(36).slice(2, 7);
-    } while (str.length <= 20);
-
-    return str;
-}
-
 app.use(sessions ({
     secret: getRandomStr(),
     saveUninitialized: false,
@@ -65,12 +45,9 @@ routes.forEach(route => {
     app.use(`/${route}`, require(__dirname + `/routers/${route}_router.js`));
 });
 
+
 app.get('/', (req, res) => {
-    if (session) {
-        res.render('index', {session: session});
-    } else {
-        res.render('index', {session: null});
-    }
+    res.render('index', {session: session});
 });
 
 // LOGIN
@@ -112,6 +89,7 @@ app.post('/signup', (req, res) => {
             if (!data) {
                 db.get('SELECT id FROM users ORDER BY id DESC LIMIT 1', (err, iddata) => {
                     const id = iddata ? createId(iddata.id++) : createId(1);
+
                     db.run('INSERT INTO users (id, nickname, password) VALUES ($id, $nickname, $password)',
                     {$id: id, $nickname: nickname, $password: password}, (err) => {
                         if (!err) {
@@ -120,6 +98,7 @@ app.post('/signup', (req, res) => {
                                 nickname: nickname,
                                 password: password
                             });
+                            
                             res.redirect('/');
                         }
                     });
