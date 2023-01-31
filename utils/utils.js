@@ -1,6 +1,5 @@
-const createId = id => {
+const createId = (id, numChar) => {
     id = id.toString();
-    const numChar = 9;
 
     while (id.length < numChar) {
         id = '0' + id;

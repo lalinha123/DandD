@@ -6,22 +6,22 @@ const { createId, getRandomStr } = require(__dirname + '/utils/utils');
 
 const app = express();
 const port = 8080;
-let session = '';
+let session = ''; 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
-app.use(cookieParser());
+app.use(cookieParser()); // ? I don't really know if this is necessary, but internet said so
 app.set('view engine', 'ejs');
 
 
-// -------------------------------------------------------------------
+// * -------------------------------------------------------------------
 // DATABASE
 const sqlite = require('sqlite3');
 const db = new sqlite.Database('database.db3');
 
 
-// -------------------------------------------------------------------
+// * -------------------------------------------------------------------
 // INITIALIZE SESSION
 app.use(sessions ({
     secret: getRandomStr(),
@@ -38,13 +38,12 @@ const startSession = (req, data) => {
 }
 
 
-// -------------------------------------------------------------------
+// * -------------------------------------------------------------------
 // APP ROUTERS
 const routes = ['parties'];
 routes.forEach(route => {
     app.use(`/${route}`, require(__dirname + `/routers/${route}_router.js`));
 });
-
 
 app.get('/', (req, res) => {
     res.render('index', {session: session});
@@ -88,7 +87,8 @@ app.post('/signup', (req, res) => {
         {$nickname: nickname}, (err, data) => {
             if (!data) {
                 db.get('SELECT id FROM users ORDER BY id DESC LIMIT 1', (err, iddata) => {
-                    const id = iddata ? createId(Number(iddata.id) + 1) : createId(1);
+                    const idLength = 9;
+                    const id = iddata ? createId(Number(iddata.id) + 1, idLength) : createId(1, idLength);
                     console.log(id);
 
                     db.run('INSERT INTO users (id, nickname, password) VALUES ($id, $nickname, $password)',
@@ -114,14 +114,15 @@ app.post('/signup', (req, res) => {
 });
 
 //LOG OUT
-app.get('/logout', (req, res) => {
+app.all('/logout', (req, res) => {
     req.session.destroy(() => {
+        req.session = null;
         session = null;
         res.redirect('/');
     });
 });
 
-// -------------------------------------------------------------------
+// * -------------------------------------------------------------------
 app.listen(port, () => {
     console.log('Server is running!');
 });
