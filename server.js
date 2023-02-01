@@ -2,15 +2,18 @@
 const { createId, getRandomStr } = require(__dirname + '/utils/utils');
 const { app, appSets, db } = require(__dirname + '/utils/common');
 
+
 // VARIABLES
 const sessions = require('express-session');
 const cookieParser = require('cookie-parser');
 const port = 8080;
 let session = ''; 
 
+
 // APP SETTINGS
 appSets(app);
 app.use(cookieParser());
+
 
 // INITIALIZE SESSION
 app.use(sessions ({
@@ -34,12 +37,14 @@ routes.forEach(route => {
     app.use(`/${route}`, require(__dirname + `/routers/${route}_router.js`));
 });
 
+
 // INDEX
 app.get('/', (req, res) => res.render('index', {session: session}));
 
 
 // LOGIN
 app.get('/login', (req, res) => res.render('login', {msg: null}));
+
 app.post('/login', (req, res) => {
     const nickname = req.body.nickname;
     const password = req.body.password;
@@ -62,6 +67,7 @@ app.post('/login', (req, res) => {
 
 // SIGN UP
 app.get('/signup', (req, res) => res.render('signup', {msg: null}));
+
 app.post('/signup', (req, res) => {
     const nickname = req.body.nickname;
     const password = req.body.password;
@@ -106,6 +112,7 @@ app.all('/logout', (req, res) => {
         res.redirect('/');
     });
 });
+
 
 // SERVER
 app.listen(port, () => console.log('Server is running!'));
