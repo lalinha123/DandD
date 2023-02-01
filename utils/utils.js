@@ -1,3 +1,4 @@
+// CREATE ID FUNCTION
 const createId = (id, numChar) => {
     id = id.toString();
 
@@ -8,6 +9,8 @@ const createId = (id, numChar) => {
     return id;
 }
 
+
+// GET RANDOM STRING FUNCTION
 const getRandomStr = () => {
     let str = '';
 
@@ -18,4 +21,6 @@ const getRandomStr = () => {
     return str;
 }
 
+
+//EXPORTS
 module.exports = { createId, getRandomStr };

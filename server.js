@@ -1,27 +1,17 @@
+// IMPORTS
+const { createId, getRandomStr } = require(__dirname + '/utils/utils');
+const { app, appSets, db } = require(__dirname + '/utils/common');
+
 // VARIABLES
-const express = require('express');
 const sessions = require('express-session');
 const cookieParser = require('cookie-parser');
-const { createId, getRandomStr } = require(__dirname + '/utils/utils');
-
-const app = express();
 const port = 8080;
 let session = ''; 
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname + '/public'));
-app.use(cookieParser()); // ? I don't really know if this is necessary, but internet said so
-app.set('view engine', 'ejs');
+// APP SETTINGS
+appSets(app);
+app.use(cookieParser());
 
-
-// * -------------------------------------------------------------------
-// DATABASE
-const sqlite = require('sqlite3');
-const db = new sqlite.Database('database.db3');
-
-
-// * -------------------------------------------------------------------
 // INITIALIZE SESSION
 app.use(sessions ({
     secret: getRandomStr(),
@@ -38,22 +28,18 @@ const startSession = (req, data) => {
 }
 
 
-// * -------------------------------------------------------------------
-// APP ROUTERS
+// * APP ROUTERS ---------------
 const routes = ['parties'];
 routes.forEach(route => {
     app.use(`/${route}`, require(__dirname + `/routers/${route}_router.js`));
 });
 
-app.get('/', (req, res) => {
-    res.render('index', {session: session});
-});
+// INDEX
+app.get('/', (req, res) => res.render('index', {session: session}));
+
 
 // LOGIN
-app.get('/login', (req, res) => {
-    res.render('login', {msg: null});
-});
-
+app.get('/login', (req, res) => res.render('login', {msg: null}));
 app.post('/login', (req, res) => {
     const nickname = req.body.nickname;
     const password = req.body.password;
@@ -73,11 +59,9 @@ app.post('/login', (req, res) => {
     }
 });
 
-// SIGN UP
-app.get('/signup', (req, res) => {
-    res.render('signup', {msg: null});
-});
 
+// SIGN UP
+app.get('/signup', (req, res) => res.render('signup', {msg: null}));
 app.post('/signup', (req, res) => {
     const nickname = req.body.nickname;
     const password = req.body.password;
@@ -113,6 +97,7 @@ app.post('/signup', (req, res) => {
     }
 });
 
+
 //LOG OUT
 app.all('/logout', (req, res) => {
     req.session.destroy(() => {
@@ -122,7 +107,5 @@ app.all('/logout', (req, res) => {
     });
 });
 
-// * -------------------------------------------------------------------
-app.listen(port, () => {
-    console.log('Server is running!');
-});
+// SERVER
+app.listen(port, () => console.log('Server is running!'));
