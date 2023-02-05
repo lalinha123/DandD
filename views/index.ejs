@@ -11,12 +11,30 @@
         <h2>Hello, <%= session.user.nickname %>!!</h2>
         <form action="/logout"><input type="submit" value="Logout"></form>
 
+        <hr>
+
         <section id="myparties">
-            <h2>My parties</h2>
+            <h2>Lastest parties</h2>
             <a href="/parties/create">Create new party</a>
+
+            <% parties.forEach((party, index) => { %>
+                <%  if (index < 3) { %>
+                        <%- include ('utils/partydiv', {party: party}) %>
+                <%  } else { %>
+                        <a href="/parties">See more</a><%
+                        return false;
+                    }
+            }); %>
+
         </section>
     <% } else { %>
         <h2>Hello, stranger!!</h2>
+
+        <hr>
+
+        <h2>uh oh!</h2>
+        <p>It seems you're not logged in yet!</p>
+        <p>click <a href="/login">here</a> to log in or <a href="/signup">here</a> to sign up!!!</p>
     <% } %>
 </body>
 </html>

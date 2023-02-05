@@ -11,12 +11,12 @@ const createId = (id, numChar) => {
 
 
 // GET RANDOM STRING FUNCTION
-const getRandomStr = () => {
+const getRandomStr = length => {
     let str = '';
 
     do {
         str += Math.random().toString(36).slice(2, 7);
-    } while (str.length <= 20);
+    } while (str.length <= length);
 
     return str;
 }
