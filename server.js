@@ -45,11 +45,10 @@ app.get('/', (req, res) => {
     else {
         db.serialize(() => {
             const id = session.userid;
+            
             db.all(`SELECT parties.* FROM participants ` +
             `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = '${id}'`,
-            (err, partiesdata) => {
-                res.render('index', {session: session, parties: partiesdata || []});
-            });
+            (err, partiesdata) => res.render('index', {session: session, parties: partiesdata || []}));
         });
     }
 });

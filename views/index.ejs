@@ -15,16 +15,16 @@
 
         <section id="myparties">
             <h2>Lastest parties</h2>
-            <a href="/parties/create">Create new party</a>
 
+            <a href="/parties/create">Create new party</a>
             <% parties.forEach((party, index) => { %>
                 <%  if (index < 3) { %>
-                        <%- include ('utils/partydiv', {party: party}) %>
-                <%  } else { %>
-                        <a href="/parties">See more</a><%
-                        return false;
-                    }
+                    <%- include ('utils/partydiv', {party: party}) %>
+                <% } else if ((index + 1) === parties.length) { %>
+                    <a href="/parties">See all</a>
+                <% }
             }); %>
+            <br>
 
         </section>
     <% } else { %>

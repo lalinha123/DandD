@@ -14,7 +14,13 @@ appSets(app);
 
 
 // * APP ROUTERS ------------------------------------------------------------------
-router.get('/', (req, res) => res.render('parties', {user: req.session.user}));
+router.get('/', (req, res) => {
+    const id = req.session.userid;
+
+    db.all(`SELECT parties.* FROM participants ` +
+    `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = '${id}'`,
+    (err, partiesdata) => res.render('parties', {user: req.session.user, parties: partiesdata}));
+});
 
 
 // CREATE NEW PARTY
@@ -22,7 +28,9 @@ router.get('/create', (req, res) => res.render('createparty', {user: req.session
 
 router.post('/create', (req, res) => {
     db.serialize(() => {
-        const id = getRandomStr(10);
+        const id = getRandomStr(6);
+
+        // TODO: figure out a way to not repeat ids >>IMPORTANT<<
 
         db
         .run(
@@ -52,12 +60,12 @@ router.post('/create', (req, res) => {
             {
                 $userid: req.session.userid,
                 $partyid: id
-            }, () => res.redirect('/'));
+            }, () => res.redirect('/parties'));
     });
 });
 
 
-// PARTIES LINKS
+// PARTY LINK
 router.get('/:id', (req, res) => {
     db.get('SELECT * FROM parties WHERE id = $id',
     {$id: req.params.id}, (err, data) => {
@@ -67,6 +75,30 @@ router.get('/:id', (req, res) => {
 
         else {
             res.render(path.join(__dirname, "..", "views", "parties_files", `${req.params.id}.ejs`));
+        }
+    });
+});
+
+
+// DELETE PARTY
+router.get('/:id/delete', (req, res) => {
+    const id = req.params.id;
+
+    db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, data) => {
+        if (!data) {
+            res.render('error');
+        }
+
+        else {
+            db.serialize(() => {
+                db
+                .run(`DELETE FROM parties WHERE id = '${id}'`, () => {
+                    fs.unlinkSync(path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`));
+                })
+                .run(`DELETE FROM participants WHERE partyid = '${id}'`, () => {
+                    res.redirect('/parties');
+                });
+            });
         }
     });
 });
