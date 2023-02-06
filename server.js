@@ -43,13 +43,11 @@ app.get('/', (req, res) => {
     }
 
     else {
-        db.serialize(() => {
-            const id = session.userid;
+        const id = session.userid;
             
-            db.all(`SELECT parties.* FROM participants ` +
-            `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = '${id}'`,
-            (err, partiesdata) => res.render('index', {session: session, parties: partiesdata || []}));
-        });
+        db.all(`SELECT parties.* FROM participants ` +
+        `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = '${id}'`,
+        (err, partiesdata) => res.render('index', {session: session, parties: partiesdata || []}));
     }
 });
 
@@ -60,6 +58,7 @@ app.get('/login', (req, res) => session ? res.redirect('/') : res.render('login'
 app.post('/login', (req, res) => {
     const nickname = req.body.nickname;
     const password = req.body.password;
+
     const render = msg => res.render('login', {msg: msg}); // useful function :)
 
     if (nickname && password) {
@@ -77,7 +76,8 @@ app.post('/login', (req, res) => {
                 else {
                     render('Invalid user or password!');
                 }
-            });
+            }
+        );
     }
     
     else {
@@ -92,6 +92,7 @@ app.get('/signup', (req, res) => session ? res.redirect('/') : res.render('signu
 app.post('/signup', (req, res) => {
     const nickname = req.body.nickname;
     const password = req.body.password;
+
     const render = msg => res.render('signup', {msg: msg}); // another useful function :)
 
     if (nickname && password) {
@@ -121,7 +122,8 @@ app.post('/signup', (req, res) => {
                                 
                                 res.redirect('/');
                             }
-                        });
+                        }
+                    );
                 });
             }
             
@@ -151,5 +153,6 @@ app.all('/logout', (req, res) => {
 app.get('*', (req, res) => res.render('error'));
 
 
-// SERVER
+
+// * SERVER ------------------------------------------------------------------
 app.listen(port, () => console.log('Server is running!'));

@@ -10,6 +10,16 @@
     <h1><%= party.name %>!!</h1>
     <h3>The most incredible party!!!!!!!!!!!!</h3>
 
-    <form action="/parties/<%= party.id %>/delete" method="GET"><input type="submit" value="Delete party"></form>
+    <!-- 
+    TODO: fix this :)
+    
+    <a href="/parties/<%= party.id %>/edit"><button>Edit party</button></a>
+    -->
+
+    <br>
+
+    <form action="/parties/<%= party.id %>/delete" method="GET">
+        <input type="submit" value="Delete party">
+    </form>
 </body>
 </html>
