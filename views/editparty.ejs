@@ -8,25 +8,26 @@
 </head>
 <body>
     <h2>Editting <%= party.name %></h2>
-
-    <!-- 
-    TODO: fix this :)
         
-    //<% if (user) { %>
-        <form action="/parties/create" method="POST" id="<%= user.id %>">
-            <input type="text" name="name" id="name" placeholder="name"><br>
-            <input type="password" name="password" id="password" placeholder="password"><br>
-            <label for="">Max participants</label><input type="number" name="maxparticipants" id="maxparticipants"><br>
-            <label for="">Min participants</label><input type="number" name="minparticipants" id="minparticipants"><br>
-            <br><input type="submit" value="Create party">
+    <% if (user) { %>
+        <form action="/parties/<%= party.id %>/edit" method="POST" id="<%= user.id %>">
+            <label for="">Name</label>
+            <input type="text" name="name" id="name" placeholder="name" value="<%= party.name %>">
+            <br>
+            <label for="">Max participants</label>
+            <input type="number" name="maxparticipants" id="maxparticipants" value="<%= party.maxparticipants %>">
+            <br>
+            <label for="">Min participants</label>
+            <input type="number" name="minparticipants" id="minparticipants" value="<%= party.minparticipants %>">
+            <br>
+            <br><input type="submit" value="Save changes">
         </form>
-    //<% } else { %>
+    <% } else { %>
         <hr>
         
         <h2>uh oh!</h2>
         <p>It seems you're not logged in yet!</p>
         <p>click <a href="/login">here</a> to log in or <a href="/signup">here</a> to sign up!!!</p>
-    //<% } %> 
-    -->
+    <% } %> 
 </body>
 </html>

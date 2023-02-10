@@ -13,6 +13,10 @@ const router = express.Router();
 appSets(app);
 
 
+//----------
+const getData = (user, party) => `<%- include ("default", {user: ${user}, party: ${party}}) %>`;
+
+
 // * APP ROUTERS ------------------------------------------------------------------
 router.get('/', (req, res) => {
     const id = req.session.userid;
@@ -67,7 +71,7 @@ router.post('/create', (req, res) => {
                         minparticipants: req.body.minparticipants,
                         master: req.session.user.nickname
                     };
-                    const data = `<%- include ("default", {user: ${JSON.stringify(req.session.user)}, party: ${JSON.stringify(party)}}) %>`
+                    const data = getData(JSON.stringify(req.session.user), JSON.stringify(party));
                     fs.writeFileSync(path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`), data);
                 }
             )
@@ -86,20 +90,45 @@ router.post('/create', (req, res) => {
 router.get('/:id', (req, res) => {
     const id = req.params.id;
 
-    db.get(`SELECT * FROM parties WHERE id = ${id}`, (err, data) => {
-        if (!data) {
-            res.render('error');
-        }
-
-        else {
-            res.render(path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`));
+    db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
+        if (party) {
+            res.render(path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`), {user: req.session.user, party: party});
         }
     });
 });
 
 
 // EDIT PARTY
-// TODO: add a router for party editting
+router.get('/:id/edit', (req, res) => {
+    const id = req.params.id;
+
+    db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
+        res.render('editparty', {user: req.session.user, party: party});
+    });
+});
+
+router.post('/:id/edit', (req, res) => {
+    const id = req.params.id;
+    let query = '';
+
+    if (req.body.name) query += `name = '${req.body.name}'`;
+    if (req.body.maxparticipants) query += `, maxparticipants = ${req.body.maxparticipants}`;
+    if (req.body.minparticipants) query += `, minparticipants = ${req.body.minparticipants}`;
+
+    db.run(`UPDATE parties SET ${query} WHERE id = '${id}'`, (err) => {
+        if (!err) {
+            db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
+                const data = getData(JSON.stringify(req.session.user), JSON.stringify(party));
+                fs.writeFileSync(path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`), data);
+                res.redirect(`/parties/${id}`);
+            });
+        } 
+
+        else {
+            res.render('error');
+        }
+    })
+});
 
 
 // DELETE PARTY
