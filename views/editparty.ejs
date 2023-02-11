@@ -10,18 +10,26 @@
     <h2>Editting <%= party.name %></h2>
         
     <% if (user) { %>
-        <form action="/parties/<%= party.id %>/edit" method="POST" id="<%= user.id %>">
-            <label for="">Name</label>
-            <input type="text" name="name" id="name" placeholder="name" value="<%= party.name %>">
-            <br>
-            <label for="">Max participants</label>
-            <input type="number" name="maxparticipants" id="maxparticipants" value="<%= party.maxparticipants %>">
-            <br>
-            <label for="">Min participants</label>
-            <input type="number" name="minparticipants" id="minparticipants" value="<%= party.minparticipants %>">
-            <br>
-            <br><input type="submit" value="Save changes">
-        </form>
+        <% if (userrole === 'master' || userrole === 'manager') { %>
+            <form action="/parties/<%= party.id %>/edit" method="POST" id="<%= user.id %>">
+                <label for="">Name</label>
+                <input type="text" name="name" id="name" placeholder="name" value="<%= party.name %>">
+                <br>
+                <label for="">Max participants</label>
+                <input type="number" name="maxparticipants" id="maxparticipants" value="<%= party.maxparticipants %>">
+                <br>
+                <label for="">Min participants</label>
+                <input type="number" name="minparticipants" id="minparticipants" value="<%= party.minparticipants %>">
+                <br>
+                <br><input type="submit" value="Save changes">
+            </form>
+            <p id="msg"></p>
+        <% } else { %>
+            <hr>
+        
+            <h2>uh oh!</h2>
+            <p>It seems you don't have permission to access this page :O!</p>
+        <% } %>
     <% } else { %>
         <hr>
         

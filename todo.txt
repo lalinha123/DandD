@@ -1,8 +1,0 @@
-*~---------------~*{ TO DOS }*~----------------~*
-
-• Add user verification before entering a new party
-• Add user verification by password when entering a party
-
-
-
-** the most important ones go first :)

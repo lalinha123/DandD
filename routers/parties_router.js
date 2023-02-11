@@ -13,7 +13,7 @@ const router = express.Router();
 appSets(app);
 
 
-//----------
+// useful function (globaly wide)
 const getData = (user, party) => `<%- include ("default", {user: ${user}, party: ${party}}) %>`;
 
 
@@ -21,9 +21,17 @@ const getData = (user, party) => `<%- include ("default", {user: ${user}, party:
 router.get('/', (req, res) => {
     const id = req.session.userid;
 
-    db.all(`SELECT parties.* FROM participants ` +
-    `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = '${id}'`,
-    (err, partiesdata) => res.render('parties', {user: req.session.user, parties: partiesdata}));
+    if (id) {
+        db.all(
+            `SELECT parties.* FROM participants ` +
+            `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = '${id}'`,
+            (err, partiesdata) => res.render('parties', {user: req.session.user, parties: partiesdata})
+        );
+    }
+
+    else {
+        res.redirect('/login');
+    }
 });
 
 
@@ -32,9 +40,8 @@ router.get('/create', (req, res) => res.render('createparty', {user: req.session
 
 router.post('/create', (req, res) => {
     db.all('SELECT id FROM parties', (err, partyids) => {
-        let id;
+        let id = '';
 
-        // this do-while below here verifies if there's any party id that matches the new one :)
         do {
             id = getRandomStr(6);
             ok = true;
@@ -48,7 +55,7 @@ router.post('/create', (req, res) => {
 
         } while (!ok)
 
-        // if below here creates new party if there's no id repeating
+
         if (ok) {
             db
             .run(
@@ -71,14 +78,25 @@ router.post('/create', (req, res) => {
                         minparticipants: req.body.minparticipants,
                         master: req.session.user.nickname
                     };
-                    const data = getData(JSON.stringify(req.session.user), JSON.stringify(party));
-                    fs.writeFileSync(path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`), data);
+
+                    const data = getData(
+                        JSON.stringify(req.session.user), 
+                        JSON.stringify(party)
+                    );
+
+                    fs.writeFileSync(
+                        path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
+                        data
+                    );
                 }
             )
-            .run('INSERT INTO participants (userid, partyid) VALUES ($userid, $partyid)',
+            .run(
+                'INSERT INTO participants (userid, partyid, userrole) ' +
+                'VALUES ($userid, $partyid, $userrole)',
                 {
                     $userid: req.session.userid,
-                    $partyid: id
+                    $partyid: id,
+                    $userrole: 'master',
                 }, () => res.redirect('/parties')
             );
         }
@@ -90,44 +108,194 @@ router.post('/create', (req, res) => {
 router.get('/:id', (req, res) => {
     const id = req.params.id;
 
-    db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
-        if (party) {
-            res.render(path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`), {user: req.session.user, party: party});
+    const checkUser = (ok, party) => {
+        if (ok) {
+            db.get(
+                `SELECT userrole FROM participants WHERE partyid = '${party.id}' ` + 
+                `AND userid = '${req.session.userid}'`, (err, data) => {
+                    if (data) {
+                        res.render(
+                            path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
+                            {user: req.session.user, party: party, userrole: data.userrole}
+                        );
+                    }
+    
+                    else {
+                        if (req.session.user) {
+                            const userrole = 'player only';
+
+                            db.run(
+                                `INSERT INTO participants (userid, partyid, userrole) ` + 
+                                `VALUES ($userid, $partyid, $userrole)`,
+                                {
+                                    $userid: req.session.userid,
+                                    $partyid: id,
+                                    $userrole: userrole
+                                }, () => {
+                                    res.render(
+                                        path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
+                                        {user: req.session.user, party: party, userrole: userrole}
+                                    );
+                                }
+                            );
+                        }
+
+                        else {
+                            res.render(
+                                path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
+                                {user: null, party: party, userrole: null}
+                            );
+                        }
+                    }
+                }
+            );
         }
-    });
+    }
+
+    if (req.session.user) {
+        db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
+            if (party) {
+                if (party.password) {
+                    res.render(
+                        path.join(__dirname, "..", "views", "parties_files", `joinparty.ejs`),
+                        {user: req.session.user, party: party}
+                    );
+                }
+
+                else {
+                    checkUser(true, party);
+                }
+            }
+
+            else {
+                res.render('error');
+            }
+        });
+    }
+
+    else {
+        res.redirect('/login');
+    }
 });
+
+
+// JOIN PARTY
+/* TODO:
+    - add GET handling (with password) for:
+        - when user has already entered the party
+        - when user hasn't entered the party already
+    Obs: 'joinparty' -> first file path; 'parties' -> following file path
+*/
 
 
 // EDIT PARTY
 router.get('/:id/edit', (req, res) => {
     const id = req.params.id;
 
-    db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
-        res.render('editparty', {user: req.session.user, party: party});
-    });
+    db.get(
+        `SELECT * FROM parties WHERE id = '${id}'`,
+        (err, party) => {
+            if (party) {
+                if (req.session.user) {
+                    db.get(
+                        `SELECT userrole FROM participants WHERE partyid = '${id}' ` +
+                        `AND userid = '${req.session.userid}'`, (err, link) => {
+                            if (link) {
+                                if (link.uerrole === 'master' || link.userrole === 'manager') {
+                                    res.render(
+                                        'editparty', 
+                                        {
+                                            user: req.session.user,
+                                            party: party, msg: '',
+                                            userrole: link.userrole
+                                        }
+                                    );
+                                }
+
+                                else {
+                                    res.redirect(`/parties/${id}`)
+                                }
+                            }
+
+                            else {
+                                res.redirect(`/parties/${id}`);
+                            }
+                        }
+                    );
+                }
+                
+                else {
+                    res.redirect('/login');
+                }
+            }
+
+            else {
+                res.render('error');
+            }
+        }
+    );
 });
 
 router.post('/:id/edit', (req, res) => {
     const id = req.params.id;
     let query = '';
+    let msg = '';
 
-    if (req.body.name) query += `name = '${req.body.name}'`;
-    if (req.body.maxparticipants) query += `, maxparticipants = ${req.body.maxparticipants}`;
-    if (req.body.minparticipants) query += `, minparticipants = ${req.body.minparticipants}`;
+    const max = req.body.maxparticipants;
+    const min = req.body.minparticipants;
 
-    db.run(`UPDATE parties SET ${query} WHERE id = '${id}'`, (err) => {
-        if (!err) {
-            db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
-                const data = getData(JSON.stringify(req.session.user), JSON.stringify(party));
-                fs.writeFileSync(path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`), data);
-                res.redirect(`/parties/${id}`);
-            });
-        } 
-
-        else {
-            res.render('error');
+    const render = msg => res.render(
+        'editparty', {
+            user: req.session.user,
+            party: party, msg: msg
         }
-    })
+    );
+
+    const sendMessage = msg => {
+        db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
+            res.render('editparty', 
+            {
+                user: req.session.user,
+                party: party,
+                msg: msg
+            });
+        });
+    }
+
+    if (min > max) {
+        sendMessage("Pls insert valid data at participants' field(s)");
+    }
+
+    else if (max <= 1) {
+        sendMessage("The party should have at least 2 participants (including you)!!");
+    }
+
+    else {
+        if (req.body.name) query += `name = '${req.body.name}'`;
+        if (max) query += `, maxparticipants = ${max}`;
+        if (min) query += `, minparticipants = ${min}`;
+    
+        db.run(`UPDATE parties SET ${query} WHERE id = '${id}'`, (err) => {
+            if (!err) {
+                db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
+                    const data = getData(
+                        JSON.stringify(req.session.user), JSON.stringify(party)
+                    );
+
+                    fs.writeFileSync(
+                        path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
+                        data
+                    );
+
+                    res.redirect(`/parties/${id}`);
+                });
+            } 
+    
+            else {
+                res.render('error');
+            }
+        });    
+    }
 });
 
 
@@ -143,9 +311,10 @@ router.get('/:id/delete', (req, res) => {
         else {
             db
             .run(`DELETE FROM parties WHERE id = '${id}'`, () => {
-                fs.unlinkSync(path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`));
+                fs.unlinkSync(
+                    path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`)
+                );
             })
-            // ! don't EVER delete this stuff below here you >>MF<<
             .run(`DELETE FROM participants WHERE partyid = '${id}'`, () => {
                     res.redirect('/parties');
             });
@@ -153,4 +322,6 @@ router.get('/:id/delete', (req, res) => {
     });
 });
 
+
+//ESPORTS
 module.exports = router;

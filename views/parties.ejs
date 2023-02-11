@@ -9,18 +9,10 @@
 <body>
     <h2>My parties!!</h2>
 
-    <% if (user) { %>
-        <a href="/parties/create">Create new party</a>
+    <a href="/parties/create">Create new party</a>
 
-        <% parties.forEach(party => { %>
-            <%- include ('utils/partydiv', {party: party}) %>
-        <% }); %>
-    <% } else { %>
-        <hr>
-        
-        <h2>uh oh!</h2>
-        <p>It seems you're not logged in yet!</p>
-        <p>click <a href="/login">here</a> to log in or <a href="/signup">here</a> to sign up!!!</p>
-    <% } %>
+    <% parties.forEach(party => { %>
+        <%- include ('utils/partydiv', {party: party}) %>
+    <% }); %>
 </body>
 </html>

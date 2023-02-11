@@ -20,10 +20,9 @@
             <% parties.forEach((party, index) => { %>
                 <%  if (index < 3) { %>
                     <%- include ('utils/partydiv', {party: party}) %>
-                <% } else if ((index + 1) === parties.length) { %>
-                    <a href="/parties">See all</a>
-                <% }
-            }); %>
+                <% } %>
+            <% }); %>
+            <a href="/parties">See all</a>
             <br>
 
         </section>
