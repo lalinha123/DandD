@@ -13,8 +13,8 @@ const appSets = app => {
 
 
 // DATABASE
-const sqlite = require('sqlite3');
-const db = new sqlite.Database('database.db3');
+const db = require('better-sqlite3')('database.db3');
+db.pragma('journal_mode = WAL');
 
 
 // EXPORTS

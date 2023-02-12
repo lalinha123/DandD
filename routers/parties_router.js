@@ -1,6 +1,6 @@
 // IMPORTS
 const { getRandomStr } = require('../utils/utils');
-const { express, app, appSets, db } = require('../utils/common');
+const { express, app, appSets, db} = require('../utils/common');
 const fs = require('fs');
 const path = require("path");
 
@@ -13,20 +13,50 @@ const router = express.Router();
 appSets(app);
 
 
-// useful function (globaly wide)
-const getData = (user, party) => `<%- include ("default", {user: ${user}, party: ${party}}) %>`;
+// useful functions (file wide)
+const getPartyData = id => db.prepare('SELECT * FROM parties WHERE id = ?').get(id);
+
+const getLink = (partyid, userid) => db.prepare(
+    `SELECT * FROM participants WHERE partyid = ? AND userid = ?`
+).get(partyid, userid);
+
+const checkFormData = (url, func1, func2, func3, func4) => {
+    const min = Number(url.minparticipants);
+    const max = Number(url.maxparticipants);
+    const name = url.name;
+
+    if (min > max) {
+        func1();
+    }
+
+    else if (min <= 1 || max <= 1) {
+        func2();
+    }
+
+    else if (!name) {
+        func3();
+    }
+
+    else {
+        func4();
+    }
+}
 
 
 // * APP ROUTERS ------------------------------------------------------------------
 router.get('/', (req, res) => {
-    const id = req.session.userid;
+    const userid = req.session.userid;
 
-    if (id) {
-        db.all(
+    if (userid) {
+        const partiesdata = db.prepare(
             `SELECT parties.* FROM participants ` +
-            `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = '${id}'`,
-            (err, partiesdata) => res.render('parties', {user: req.session.user, parties: partiesdata})
-        );
+            `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = ?`
+        ).all(userid);
+        
+        res.render('parties', {
+            user: req.session.user,
+            parties: partiesdata
+        })
     }
 
     else {
@@ -36,71 +66,77 @@ router.get('/', (req, res) => {
 
 
 // CREATE NEW PARTY
-router.get('/create', (req, res) => res.render('createparty', {user: req.session.user}));
+router.get('/create', (req, res) => {
+    if (req.session.user) {
+        res.render('createparty', { user: req.session.user, msg: null })
+    }
+
+    else {
+        res.redirect('/login');
+    }
+});
+
 
 router.post('/create', (req, res) => {
-    db.all('SELECT id FROM parties', (err, partyids) => {
-        let id = '';
+    const sendMessage = msg => res.render('createparty', {user: req.session.user, msg: msg});
 
-        do {
-            id = getRandomStr(6);
-            ok = true;
+    checkFormData(req.body, 
+        () => sendMessage("Pls insert valid participants' number"),
+        () => sendMessage("The party should have at least 2 participants (including you)!!"),
+        () => sendMessage("Pls insert a name"),
+        () => {
+            let id = '';
+        
+            do {
+                id = getRandomStr(6);
+                ok = true;
 
-            partyids.forEach(partyid => {
-                if (partyid === id) {
-                    ok = false;
-                    return;
-                }
-            });
+                const partyids = db.prepare('SELECT id FROM parties').all();
+        
+                partyids.forEach(partyid => {
+                    if (partyid === id) {
+                        ok = false;
+                        return;
+                    }
+                });
+        
+            } while (!ok)
+        
+        
+            if (ok) {
+                // CREATES PARTY
+                db.prepare(
+                    'INSERT INTO parties (id, name, password, maxparticipants, ' +
+                    'minparticipants, master) VALUES (?, ?, ?, ?, ?, ?)'
+                ).run(
+                    id,
+                    req.body.name,
+                    req.body.password || null,
+                    req.body.maxparticipants,
+                    req.body.minparticipants,
+                    req.session.user.nickname
+                );
 
-        } while (!ok)
+                // CREATES PARTY FILE
+                const party = getPartyData(id);
+                const data = `<%- include ("default", { user: ${JSON.stringify(req.session.user)}, party: ${JSON.stringify(party)} }) %>`;
 
+                fs.writeFileSync(
+                    path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`), data
+                );
+                
 
-        if (ok) {
-            db
-            .run(
-                'INSERT INTO parties ' + 
-                '(id, name, password, maxparticipants, minparticipants, master) VALUES ' +
-                '($id, $name, $password, $maxparticipants, $minparticipants, $master)', 
-                {
-                    $id: id,
-                    $name: req.body.name,
-                    $password: req.body.password || null,
-                    $maxparticipants: req.body.maxparticipants,
-                    $minparticipants: req.body.minparticipants,
-                    $master: req.session.user.nickname
-                }, () => {
-                    const party = {
-                        id: id,
-                        name: req.body.name,
-                        password: req.body.password || null,
-                        maxparticipants: req.body.maxparticipants,
-                        minparticipants: req.body.minparticipants,
-                        master: req.session.user.nickname
-                    };
-
-                    const data = getData(
-                        JSON.stringify(req.session.user), 
-                        JSON.stringify(party)
-                    );
-
-                    fs.writeFileSync(
-                        path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
-                        data
-                    );
-                }
-            )
-            .run(
-                'INSERT INTO participants (userid, partyid, userrole) ' +
-                'VALUES ($userid, $partyid, $userrole)',
-                {
-                    $userid: req.session.userid,
-                    $partyid: id,
-                    $userrole: 'master',
-                }, () => res.redirect('/parties')
-            );
+                // CREATES LINK BETWEEN PARTY AND USER
+                db.prepare(
+                    'INSERT INTO participants (userid, partyid, userrole) ' +
+                    'VALUES (?, ?, ?)'
+                ).run(req.session.userid, id, 'master');
+                
+                // FUNCTION'S END
+                res.redirect('/parties');
+            }
         }
-    });
+    );
 });
 
 
@@ -108,69 +144,63 @@ router.post('/create', (req, res) => {
 router.get('/:id', (req, res) => {
     const id = req.params.id;
 
-    const checkUser = (ok, party) => {
-        if (ok) {
-            db.get(
-                `SELECT userrole FROM participants WHERE partyid = '${party.id}' ` + 
-                `AND userid = '${req.session.userid}'`, (err, data) => {
-                    if (data) {
-                        res.render(
-                            path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
-                            {user: req.session.user, party: party, userrole: data.userrole}
-                        );
-                    }
-    
-                    else {
-                        if (req.session.user) {
-                            const userrole = 'player only';
-
-                            db.run(
-                                `INSERT INTO participants (userid, partyid, userrole) ` + 
-                                `VALUES ($userid, $partyid, $userrole)`,
-                                {
-                                    $userid: req.session.userid,
-                                    $partyid: id,
-                                    $userrole: userrole
-                                }, () => {
-                                    res.render(
-                                        path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
-                                        {user: req.session.user, party: party, userrole: userrole}
-                                    );
-                                }
-                            );
-                        }
-
-                        else {
-                            res.render(
-                                path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
-                                {user: null, party: party, userrole: null}
-                            );
-                        }
-                    }
-                }
-            );
-        }
-    }
-
     if (req.session.user) {
-        db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
-            if (party) {
-                if (party.password) {
-                    res.render(
-                        path.join(__dirname, "..", "views", "parties_files", `joinparty.ejs`),
-                        {user: req.session.user, party: party}
-                    );
-                }
+        const party = getPartyData(id);
 
-                else {
-                    checkUser(true, party);
-                }
+        if (party) {
+            if (party.password) {
+                res.render(
+                    path.join(__dirname, "..", "views", "parties_files", `joinparty.ejs`),
+                    { user: req.session.user, party: party }
+                );
             }
 
             else {
-                res.render('error');
+                const link = getLink(id, req.session.userid);
+
+                if (link) {
+                    res.render(
+                        path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
+                        {
+                            party: party,
+                            userrole: link.userrole,
+                            session: req.session
+                        }
+                    );
+                }
+            
+                else {
+                    if (req.session.user) {
+                        const userrole = 'player only';
+
+                        db.prepare(
+                            `INSERT INTO participants (userid, partyid, userrole) ` + 
+                            `VALUES (?, ?, ?)`
+                        ).run(req.session.userid, id, userrole);
+                        
+                        res.render(
+                            path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
+                            {
+                                user: req.session.user,
+                                party: party,
+                                userrole: userrole
+                            }
+                        );
+                    }
+        
+                    else {
+                        res.render(
+                            path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
+                            { user: null, party: party, userrole: null }
+                        );
+                    }
+                }
             }
-        });
+        }
+
+        else {
+            res.render('error');
+        }
     }
 
     else {
@@ -191,135 +221,123 @@ router.get('/:id', (req, res) => {
 // EDIT PARTY
 router.get('/:id/edit', (req, res) => {
     const id = req.params.id;
+    const party = getPartyData(id);
 
-    db.get(
-        `SELECT * FROM parties WHERE id = '${id}'`,
-        (err, party) => {
-            if (party) {
-                if (req.session.user) {
-                    db.get(
-                        `SELECT userrole FROM participants WHERE partyid = '${id}' ` +
-                        `AND userid = '${req.session.userid}'`, (err, link) => {
-                            if (link) {
-                                if (link.uerrole === 'master' || link.userrole === 'manager') {
-                                    res.render(
-                                        'editparty', 
-                                        {
-                                            user: req.session.user,
-                                            party: party, msg: '',
-                                            userrole: link.userrole
-                                        }
-                                    );
-                                }
+    if (party) {
+        if (req.session.user) {
+            const link = getLink(id, req.session.userid);
 
-                                else {
-                                    res.redirect(`/parties/${id}`)
-                                }
-                            }
-
-                            else {
-                                res.redirect(`/parties/${id}`);
-                            }
+            if (link) {
+                if (link.userrole === 'master' || link.userrole === 'manager') {
+                    res.render('editparty', 
+                        {
+                            user: req.session.user,
+                            party: party, msg: '',
+                            userrole: link.userrole
                         }
                     );
                 }
-                
+
                 else {
-                    res.redirect('/login');
+                    res.redirect(`/parties/${id}`)
                 }
             }
 
             else {
-                res.render('error');
+                res.redirect(`/parties/${id}`);
             }
         }
-    );
+                
+        else {
+            res.redirect('/login');
+        }
+    }
+
+    else {
+        res.render('error');
+    }
 });
 
 router.post('/:id/edit', (req, res) => {
     const id = req.params.id;
     let query = '';
-    let msg = '';
-
-    const max = req.body.maxparticipants;
-    const min = req.body.minparticipants;
-
-    const render = msg => res.render(
-        'editparty', {
-            user: req.session.user,
-            party: party, msg: msg
-        }
-    );
 
     const sendMessage = msg => {
-        db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
-            res.render('editparty', 
-            {
-                user: req.session.user,
-                party: party,
-                msg: msg
-            });
+        const party = db.prepare(
+            `SELECT parties.*, participants.userrole FROM parties LEFT JOIN ` +
+            `participants ON parties.id = participants.partyid WHERE parties.id = ?`
+        ).get(id);
+
+        res.render('editparty', 
+        {
+            user: req.session.user,
+            party: party,
+            msg: msg,
+            userrole: party.userrole,
         });
     }
 
-    if (min > max) {
-        sendMessage("Pls insert valid data at participants' field(s)");
-    }
+    checkFormData(req.body, 
+        () => sendMessage("Pls insert valid participants' number"),
+        () => sendMessage("The party should have at least 2 participants (including you)!!"),
+        () => sendMessage("Pls insert a name"),
+        () => {
+            const min = Number(req.body.minparticipants);
+            const max = Number(req.body.maxparticipants);
+            const name = req.body.name;
 
-    else if (max <= 1) {
-        sendMessage("The party should have at least 2 participants (including you)!!");
-    }
+            // CREATES QUERY
+            if (name) query += `name = '${req.body.name}'`;
+            if (max) query += `, maxparticipants = ${max}`;
+            if (min) query += `, minparticipants = ${min}`;
 
-    else {
-        if (req.body.name) query += `name = '${req.body.name}'`;
-        if (max) query += `, maxparticipants = ${max}`;
-        if (min) query += `, minparticipants = ${min}`;
-    
-        db.run(`UPDATE parties SET ${query} WHERE id = '${id}'`, (err) => {
-            if (!err) {
-                db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, party) => {
-                    const data = getData(
-                        JSON.stringify(req.session.user), JSON.stringify(party)
-                    );
+            console.log(query)
 
-                    fs.writeFileSync(
-                        path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`),
-                        data
-                    );
+            // UPDATES TABLE
+            db.prepare(`UPDATE parties SET ${query} WHERE id = ?`).run(id);
+        
+            // UPDATES PARTY'S FILE
+            const party = getPartyData(id);
+            const data = `<%- include ("default", { user: ${JSON.stringify(req.session.user)}, party: ${JSON.stringify(party)} }) %>`;;
 
-                    res.redirect(`/parties/${id}`);
-                });
-            } 
-    
-            else {
-                res.render('error');
-            }
-        });    
-    }
+            fs.writeFileSync(
+                path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`), data
+            );
+
+            res.redirect(`/parties/${id}`);
+        }
+    );
 });
 
 
 // DELETE PARTY
 router.get('/:id/delete', (req, res) => {
     const id = req.params.id;
+    const party = getPartyData(id);
 
-    db.get(`SELECT * FROM parties WHERE id = '${id}'`, (err, data) => {
-        if (!data) {
-            res.render('error');
+    if (!party) {
+        res.render('error');
+    }
+
+    else {
+        if (req.session.user) {
+            const link = getLink(id, req.session.userid);
+
+            if (link && link.userrole === 'master') {
+                db.prepare(`DELETE FROM participants WHERE partyid = ?`).run(id);
+                db.prepare(`DELETE FROM parties WHERE id = ?`).run(id);
+                res.redirect('/parties');
+            }
+
+            else {
+                res.redirect(`/parties/${id}`);
+            }
         }
 
         else {
-            db
-            .run(`DELETE FROM parties WHERE id = '${id}'`, () => {
-                fs.unlinkSync(
-                    path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`)
-                );
-            })
-            .run(`DELETE FROM participants WHERE partyid = '${id}'`, () => {
-                    res.redirect('/parties');
-            });
+            res.redirect('/login');
         }
-    });
+    }
 });
 
 

@@ -10,20 +10,21 @@
     <h2>Create your parties here!!!!</h2>
 
     <% if (user) { %>
-        <form action="/parties/create" method="POST" id="<%= user.id %>">
+        <form action="/parties/create" method="POST">
             <label for="">Name</label>
-            <input type="text" name="name" id="name">
+            <input type="text" name="name" id="name" required>
             <br>
             <label for="">Password</label>
             <input type="password" name="password" id="password">
             <br>
             <label for="">Max participants</label>
-            <input type="number" name="maxparticipants" id="maxparticipants">
+            <input type="number" name="maxparticipants" id="maxparticipants" value="7" min="2">
             <br>
             <label for="">Min participants</label>
-            <input type="number" name="minparticipants" id="minparticipants">
+            <input type="number" name="minparticipants" id="minparticipants" value="2" min="2">
             <br>
             <br><input type="submit" value="Create party">
+            <p id="msg"><%= msg %></p>
         </form>
     <% } else { %>
         <hr>

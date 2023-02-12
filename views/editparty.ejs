@@ -11,7 +11,7 @@
         
     <% if (user) { %>
         <% if (userrole === 'master' || userrole === 'manager') { %>
-            <form action="/parties/<%= party.id %>/edit" method="POST" id="<%= user.id %>">
+            <form action="/parties/<%= party.id %>/edit" method="POST">
                 <label for="">Name</label>
                 <input type="text" name="name" id="name" placeholder="name" value="<%= party.name %>">
                 <br>
@@ -19,11 +19,11 @@
                 <input type="number" name="maxparticipants" id="maxparticipants" value="<%= party.maxparticipants %>">
                 <br>
                 <label for="">Min participants</label>
-                <input type="number" name="minparticipants" id="minparticipants" value="<%= party.minparticipants %>">
+                <input type="number" name="minparticipants" id="minparticipants" min="2" value="<%= party.minparticipants %>">
                 <br>
                 <br><input type="submit" value="Save changes">
+                <p id="msg"><%= msg %></p>
             </form>
-            <p id="msg"></p>
         <% } else { %>
             <hr>
         

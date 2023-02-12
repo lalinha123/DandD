@@ -44,10 +44,13 @@ app.get('/', (req, res) => {
 
     else {
         const id = session.userid;
-            
-        db.all(`SELECT parties.* FROM participants ` +
-        `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = '${id}'`,
-        (err, partiesdata) => res.render('index', {session: session, parties: partiesdata || []}));
+
+        const partiesdata = db.prepare(
+            `SELECT parties.* FROM participants ` +
+            `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = ?`
+        ).all(id);
+
+        res.render('index', {session: session, parties: partiesdata || []});
     }
 });
 
@@ -62,22 +65,16 @@ app.post('/login', (req, res) => {
     const render = msg => res.render('login', {msg: msg}); // useful function :)
 
     if (nickname && password) {
-        db.get('SELECT * FROM users WHERE nickname = $nickname AND password = $password', 
-            {
-                $nickname: nickname,
-                $password: password
-            },
-            (err, user) => {
-                if (user) {
-                    startSession(req, user);
-                    res.redirect('/');
-                }
+        const user = db.prepare('SELECT * FROM users WHERE nickname = ? AND password = ?').get(nickname, password);
+
+        if (user) {
+            startSession(req, user);
+            res.redirect('/');
+        }
                 
-                else {
-                    render('Invalid user or password!');
-                }
-            }
-        );
+        else {
+            render('Invalid user or password!');
+        }
     }
     
     else {
@@ -96,42 +93,34 @@ app.post('/signup', (req, res) => {
     const render = msg => res.render('signup', {msg: msg}); // another useful function :)
 
     if (nickname && password) {
-        db.get('SELECT nickname FROM users WHERE nickname = $nickname',
-        { $nickname: nickname }, (err, user) => {
-            if (!user) {
-                db.get('SELECT id FROM users ORDER BY id DESC LIMIT 1', (err, data) => {
-                    const idLength = 9;
-                    const id = data ? createId(Number(data.id) + 1, idLength) : createId(1, idLength);
+        const user = db.prepare('SELECT nickname FROM users WHERE nickname = ?').get(nickname);
 
-                    db.run(
-                        'INSERT INTO users (id, nickname, password) VALUES ' +
-                        '($id, $nickname, $password)',
-                        {
-                            $id: id,
-                            $nickname: nickname,
-                            $password: password
-                        },
-                        (err) => {
-                            if (!err) {
-                                startSession(req,
-                                    {
-                                        id: id,
-                                        nickname: nickname,
-                                        password: password
-                                    });
+        if (!user) {
+            const data = db.prepare('SELECT id FROM users ORDER BY id DESC LIMIT 1').get();
+            const idLength = 9;
+            const id = data ? createId(Number(data.id) + 1, idLength) : createId(1, idLength);
+
+            db.prepare(
+                'INSERT INTO users (id, nickname, password) VALUES ' +
+                '(?, ?, ?)'
+            ).run(id, nickname, password);
+                        
+            startSession(req,
+                {
+                    id: id,
+                    nickname: nickname,
+                    password: password
+                }
+            );
                                 
-                                res.redirect('/');
-                            }
-                        }
-                    );
-                });
-            }
+            res.redirect('/');
+        }
             
-            else {
-                render('This user already exists! :O');
-            }
-        });
+        else {
+            render('This user already exists! :O');
+        }
     }
+
     
     else {
         render('Pls fill all the blank areas');
