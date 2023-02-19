@@ -28,6 +28,7 @@ const startSession = (req, data) => {
     session = req.session;
     session.userid = data.id;
     session.user = data;
+    session.currentpass = null
 }
 
 
@@ -46,8 +47,8 @@ app.get('/', (req, res) => {
         const id = session.userid;
 
         const partiesdata = db.prepare(
-            `SELECT parties.* FROM participants ` +
-            `LEFT JOIN parties ON participants.partyid = parties.id WHERE userid = ?`
+            `SELECT parties.* FROM links ` +
+            `LEFT JOIN parties ON links.partyid = parties.id WHERE userid = ?`
         ).all(id);
 
         res.render('index', {session: session, parties: partiesdata || []});
@@ -69,7 +70,7 @@ app.post('/login', (req, res) => {
 
         if (user) {
             startSession(req, user);
-            res.redirect('/');
+            res.redirect('back');
         }
                 
         else {
@@ -105,13 +106,7 @@ app.post('/signup', (req, res) => {
                 '(?, ?, ?)'
             ).run(id, nickname, password);
                         
-            startSession(req,
-                {
-                    id: id,
-                    nickname: nickname,
-                    password: password
-                }
-            );
+            startSession(req, { id: id, nickname: nickname, password: password });
                                 
             res.redirect('/');
         }

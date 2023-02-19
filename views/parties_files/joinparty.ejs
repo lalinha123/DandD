@@ -7,15 +7,29 @@
     <title>Join party :)</title>
 </head>
 <body>
-    <h2>Join <%= party.name %>!</h2>
+    <% let label = '';
+
+        if (type === 'member') {
+            label = 'Enter';
+        }
+
+        else {
+            label = 'Join';
+        } 
+    %>
+
+    <h2><%= label %> <%= party.name %>!</h2>
 
     <% if (user) { %>
-        <form action='/parties/<%= party.id %>/join' method="POST" id="<%= user.id %>">
-            <label for="">Password</label>
-            <input type="password" name="password" id="password">
-            <br>
-            <br><input type="submit" value="Join party">
-        </form>
+            <form action='/parties/<%= party.id %>/join' method="POST" id="<%= user.id %>">
+                <% if (party.password) { %>
+                    <label for="">Password</label>
+                    <input type="password" name="password" id="password">
+                    <br>
+                <% } %>
+                <br><input type="submit" value="<%= label %> party">
+            </form>
+            <p id="msg"><%= msg %></p>
     <% } else { %>
         <hr>
         

@@ -1,9 +1,9 @@
 -- SQLite
 DELETE FROM parties;
-DELETE FROM participants;
+DELETE FROM link;
 
 DROP TABLE parties;
-DROP TABLE participants;
+DROP TABLE link;
 
 CREATE TABLE parties (
     id TEXT NOT NULL PRIMARY KEY,
@@ -16,7 +16,8 @@ CREATE TABLE parties (
 
 -------------
 # roles: master, manager, player only
-CREATE TABLE participants (
+CREATE TABLE link (
+    linkid TEXT NOT NULL PRIMARY KEY,
     userid TEXT NOT NULL,
     partyid TEXT NOT NULL,
     userrole TEXT NOT NULL,
