@@ -1,10 +1,12 @@
 /*
     TODO:
-    [ ] Add join link
+    [x] Add join link
     [ ] Add AJAX on EJS
     [x] Fix link after logging in (link to the previous page)
+    [ ] Check if currentpass is the party's one
 
 */
+
 // IMPORTS
 const { getRandomStr, createId } = require('../utils/utils');
 const { express, app, appSets, db} = require('../utils/common');
@@ -41,7 +43,7 @@ const checkFormData = (url, func1, func2, func3, func4) => {
 const checkLoginData = (req, res, party, func1, func2) => {
     if (req.session.user) {
         func1();
-        party ? func2() : res.redirect('error');
+        party ? func2() : res.render('error');
     }
 
     else res.redirect('/login');
@@ -132,7 +134,8 @@ router.post('/create', (req, res) => {
 
                 // CREATES LINK BETWEEN PARTY AND USER
                 const linkid_ = db.prepare('SELECT linkid FROM links ORDER BY linkid DESC LIMIT 1').get();
-                const linkid = createId(Number(linkid_) + 1 || 1, 9);
+                const id_ = linkid_ ? Number(linkid_.linkid) + 1 : 1;
+                const linkid = createId(id_, 9);
 
                 db.prepare(
                     'INSERT INTO links (linkid, userid, partyid, userrole) ' +
@@ -148,99 +151,137 @@ router.post('/create', (req, res) => {
 
 
 // ENTER PARTY
-router.get('/:id', (req, res) => {
+router.get('/:id/enter', (req, res) => {
     const id = req.params.id;
     const party = getPartyData(id);
     const link = getLinkData(id, req.session.userid);
 
-    const renderJoinPage = (type) =>  res.render(
+
+    // FUNCTIONS
+    const renderJoinPage = (member) =>  res.render(
         path.join(__dirname, "..", "views", "parties_files", `joinparty.ejs`),
-        { user: req.session.user, party: party, type: type, msg: null }
+        { user: req.session.user, party: party, member: member, msg: null }
     );
 
-    const renderEnterPage = () => {
-        req.session.currentpass = link.linkid;
-        res.render(`parties_files/${id}`,
-            {
-                user: req.session.user,
-                userrole: link.userrole,
-                party: party
+
+    // VERIFIES IF THERE'S ANY CURRENT SESSION PASS
+    checkLoginData(req, res, party,
+        () => {},
+        () => {
+            if (req.session.currentpass) {
+                res.redirect(`/parties/${id}`);
             }
-        );
-    }
-
-    if (req.session.currentpass) {
-        renderEnterPage();
-    }
-
-    else {
-        checkLoginData(req, res, party,
-            () => {},
-            () => {
-                if (party.password) {
-                    if (!link) renderJoinPage('nomember');
-                    else if (link.userrole !== 'master') renderJoinPage('member');
-                    else renderEnterPage();
+            else if (link && link.userrole === 'master') {
+                req.session.currentpass = link.linkid;
+                res.redirect(`/parties/${id}`);
+            }
+            else {
+                if (link) {
+                    renderJoinPage(true)
                 }
-    
+
                 else {
-                    if (link) renderEnterPage();
-                    else req.session.user ? renderJoinPage('member') : res.redirect('/login');
+                    renderJoinPage(false)
                 }
             }
-        );
-    }0
+        }
+    );
 });
 
 
 // JOIN PARTY
-router.post('/:id/join', (req, res) => {
+router.post('/:id/enter', (req, res) => {
     const id = req.params.id;
-    const type = req.params.type;
+    const redirect = () => res.redirect(`/parties/${id}`);
     const party = getPartyData(id);
     const link = getLinkData(id, req.session.userid);
-    const password = req.body.password;
 
-    const render = () => res.redirect(`/parties/${id}`);
-
-    const createLink = () => {
-        const userrole = 'player only';
+    const createLinkid = () => {
         const linkid_ = db.prepare('SELECT linkid FROM links ORDER BY linkid DESC LIMIT 1').get();
-        const linkid = createId(Number(linkid_.linkid) + 1 || 1, 9);
-        console.log(linkid_);
-        console.log(linkid);
+        const id_ = linkid_ ? Number(linkid_.linkid) + 1 : 1;
+        return createId(id_, 9);
+    }
 
-        db.prepare(
-            `INSERT INTO links (linkid, userid, partyid, userrole) ` + 
-            `VALUES (?, ?, ?, ?)`
-        ).run(linkid, req.session.userid, id, userrole);
-                        
-        req.session.currentpass = linkid;
-        
-        render();
+    const renderJoinPage = (member, msg) =>  res.render(
+        path.join(__dirname, "..", "views", "parties_files", `joinparty.ejs`),
+        { user: req.session.user, party: party, member: member, msg: msg }
+    );
+
+    const verifyLink = () => {
+        if (link) {
+            redirect();
+        }
+
+        else {
+            const linkid = createLinkid();
+            
+            db.prepare(
+                `INSERT INTO links (linkid, userid, partyid, userrole) ` + 
+                `VALUES (?, ?, ?, ?)`
+            ).run(linkid, req.session.userid, id, 'player only');
+                   
+            redirect();
+        }
     }
 
     checkLoginData(req, res, party,
         () => {},
         () => {
-            if (party.password) {
-                if (password === party.password) {
-                    link ? render() : createLink();
+            if (req.session.currentpass) {
+                redirect();
+            }
+            
+            else {
+                if (party.password) {
+                    if (party.password === req.body.password) {
+                        req.session.currentpass = createLinkid();
+    
+                        verifyLink();
+                    }
+    
+                    else if (!password) {
+                        const member = link ? true : false;
+                        renderJoinPage(member, 'Pls insert a password!');
+                    }
+    
+                    else {
+                        const member = link ? true : false;
+                        renderJoinPage(member, 'Wrong password');
+                    }
                 }
 
                 else {
-                    const msg = password ? 'Uh oh! Wrong password!' : 'Pls insert the password';
-                    const type = link ? 'member' : 'nomember';
-
-                    res.render(
-                        path.join(__dirname, "..", "views", "parties_files", `joinparty.ejs`),
-                        { user: req.session.user, party: party, type: type, msg: msg }
-                    );
+                    req.session.currentpass = createLinkid();
+                    verifyLink();
                 }
+            }
+        }
+    );
+    
+});
+
+
+// REDIRECT PAGE
+router.get('/:id', (req, res) => {
+    const id = req.params.id;
+    const party = getPartyData(id);
+    const link = getLinkData(id, req.session.userid);
+
+    checkLoginData(req, res, party,
+        () => {},
+        () => {
+            if (req.session.currentpass) {
+                res.render(`parties_files/${id}`,
+                    {
+                        user: req.session.user,
+                        userrole: link.userrole,
+                        party: party
+                    }
+                );
             }
 
             else {
-                link ? render() : createLink();
+                res.redirect(`/parties/${id}/enter`);
             }
         }
     );
