@@ -66,21 +66,14 @@ router.get('/', (req, res) => {
         })
     }
 
-    else {
-        res.redirect('/login');
-    }
+    else res.redirect('/login');
 });
 
 
 // CREATE NEW PARTY
 router.get('/create', (req, res) => {
-    if (req.session.user) {
-        res.render('createparty', { user: req.session.user, msg: null })
-    }
-
-    else {
-        res.redirect('/login');
-    }
+    if (req.session.user) res.render('createparty', { user: req.session.user, msg: null });
+    else res.redirect('/login');
 });
 
 
@@ -168,21 +161,16 @@ router.get('/:id/enter', (req, res) => {
     checkLoginData(req, res, party,
         () => {},
         () => {
-            if (req.session.currentpass) {
-                res.redirect(`/parties/${id}`);
-            }
-            else if (link && link.userrole === 'master') {
-                req.session.currentpass = link.linkid;
-                res.redirect(`/parties/${id}`);
-            }
+            if (req.session.currentpass === id) res.redirect(`/parties/${id}`);
+
             else {
-                if (link) {
-                    renderJoinPage(true)
+                if (link && link.userrole === 'master') {
+                    req.session.currentpass = id;
+                    res.redirect(`/parties/${id}`);
                 }
 
-                else {
-                    renderJoinPage(false)
-                }
+                else if (link) renderJoinPage(true);
+                else renderJoinPage(false);
             }
         }
     );
@@ -192,9 +180,10 @@ router.get('/:id/enter', (req, res) => {
 // JOIN PARTY
 router.post('/:id/enter', (req, res) => {
     const id = req.params.id;
-    const redirect = () => res.redirect(`/parties/${id}`);
     const party = getPartyData(id);
     const link = getLinkData(id, req.session.userid);
+
+    const redirect = () => res.redirect(`/parties/${id}`);
 
     const createLinkid = () => {
         const linkid_ = db.prepare('SELECT linkid FROM links ORDER BY linkid DESC LIMIT 1').get();
@@ -213,12 +202,10 @@ router.post('/:id/enter', (req, res) => {
         }
 
         else {
-            const linkid = createLinkid();
-            
             db.prepare(
                 `INSERT INTO links (linkid, userid, partyid, userrole) ` + 
                 `VALUES (?, ?, ?, ?)`
-            ).run(linkid, req.session.userid, id, 'player only');
+            ).run(createLinkid(), req.session.userid, id, 'player only');
                    
             redirect();
         }
@@ -227,19 +214,16 @@ router.post('/:id/enter', (req, res) => {
     checkLoginData(req, res, party,
         () => {},
         () => {
-            if (req.session.currentpass) {
-                redirect();
-            }
-            
+            if (req.session.currentpass === id) redirect();
+
             else {
                 if (party.password) {
                     if (party.password === req.body.password) {
-                        req.session.currentpass = createLinkid();
-    
+                        req.session.currentpass = id;
                         verifyLink();
                     }
     
-                    else if (!password) {
+                    else if (party.password === '') {
                         const member = link ? true : false;
                         renderJoinPage(member, 'Pls insert a password!');
                     }
@@ -251,7 +235,7 @@ router.post('/:id/enter', (req, res) => {
                 }
 
                 else {
-                    req.session.currentpass = createLinkid();
+                    req.session.currentpass = id;
                     verifyLink();
                 }
             }
@@ -270,7 +254,7 @@ router.get('/:id', (req, res) => {
     checkLoginData(req, res, party,
         () => {},
         () => {
-            if (req.session.currentpass) {
+            if (req.session.currentpass === id) {
                 res.render(`parties_files/${id}`,
                     {
                         user: req.session.user,
@@ -310,14 +294,10 @@ router.get('/:id/edit', (req, res) => {
                     );
                 }
 
-                else {
-                    res.redirect(`/parties/${id}`);
-                }
+                else res.redirect(`/parties/${id}`);
             }
 
-            else {
-                res.redirect(`/parties/${id}`);
-            }
+            else res.redirect(`/parties/${id}`);
         }
     );
 });
