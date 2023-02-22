@@ -1,6 +1,7 @@
 -- SQLite
 DELETE FROM parties;
 DELETE FROM links;
+DELETE FROM users;
 
 DROP TABLE parties;
 DROP TABLE links;

@@ -1,15 +1,11 @@
 /*
     TODO:
-    [x] Add join link
-    [ ] Add AJAX on EJS
-    [x] Fix link after logging in (link to the previous page)
-    [ ] Check if currentpass is the party's one
-
+    [ ] Add max participants' validation before entering a party
 */
 
 // IMPORTS
 const { getRandomStr, createId } = require('../utils/utils');
-const { express, app, appSets, db} = require('../utils/common');
+const { express, app, appSets, db } = require('../utils/common');
 const fs = require('fs');
 const path = require("path");
 
@@ -118,7 +114,7 @@ router.post('/create', (req, res) => {
 
                 // CREATES PARTY FILE
                 const party = getPartyData(id);
-                const data = `<%- include ("default", { user: ${JSON.stringify(req.session.user)}, party: ${JSON.stringify(party)} }) %>`;
+                const data = `<%- include ("utils/default", { user: ${JSON.stringify(req.session.user)}, party: ${JSON.stringify(party)} }) %>`;
 
                 fs.writeFileSync(
                     path.join(__dirname, "..", "views", "parties_files", `${id}.ejs`), data
@@ -152,7 +148,7 @@ router.get('/:id/enter', (req, res) => {
 
     // FUNCTIONS
     const renderJoinPage = (member) =>  res.render(
-        path.join(__dirname, "..", "views", "parties_files", `joinparty.ejs`),
+        path.join(__dirname, "..", "views", "parties_files", `utils/joinparty.ejs`),
         { user: req.session.user, party: party, member: member, msg: null }
     );
 
@@ -192,7 +188,7 @@ router.post('/:id/enter', (req, res) => {
     }
 
     const renderJoinPage = (member, msg) =>  res.render(
-        path.join(__dirname, "..", "views", "parties_files", `joinparty.ejs`),
+        path.join(__dirname, "..", "views", "parties_files", `utils/joinparty.ejs`),
         { user: req.session.user, party: party, member: member, msg: msg }
     );
 

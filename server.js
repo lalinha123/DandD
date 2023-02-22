@@ -133,9 +133,16 @@ app.all('/logout', (req, res) => {
 });
 
 
+// QUERY
+app.post('/search', (req, res) => {
+    const query = req.body.query;
+    const parties = db.prepare(`SELECT * FROM parties WHERE name LIKE '%${query}%' ORDER BY name ASC LIMIT 6`).all();
+    res.json({parties: parties});
+});
+
+
 // ROUTER ERROR HANDLING
 app.get('*', (req, res) => res.render('error'));
-
 
 
 // * SERVER ------------------------------------------------------------------
