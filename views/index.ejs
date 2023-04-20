@@ -4,71 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-    <title>Home :)</title>
+    <title>Index</title>
 </head>
 <body>
-    <% if (session) { %>
-        <h2>Hello, <%= session.user.nickname %>!!</h2>
-        <form action="/logout"><input type="submit" value="Logout"></form>
-
-        <hr>
-
-        <div class="search" id="party">
-            <label for="">Search party:</label>
-            <input type="text" name="search-party" id="search-party" placeholder="type party's name here">
-            <datalist style="display: block" id="parties"></datalist>
-        </div>
-
-        <section id="myparties">
-            <h2>Lastest parties</h2>
-
-            <a href="/parties/create">Create new party</a>
-            <% parties.forEach((party, index) => { %>
-                <%  if (index < 3) { %>
-                    <%- include ('utils/partydiv', {party: party}) %>
-                <% } %>
-            <% }); %>
-            <a href="/parties">See all</a>
-            <br>
-
-        </section>
-    <% } else { %>
-        <h2>Hello, stranger!!</h2>
-
-        <hr>
-
-        <h2>uh oh!</h2>
-        <p>It seems you're not logged in yet!</p>
-        <p>click <a href="/login">here</a> to log in or <a href="/signup">here</a> to sign up!!!</p>
-    <% } %>
-
-    <script>
-        $().ready(() => {
-            $('#search-party').keyup(() => {
-                $('#parties').text('');
-
-                $.post(
-                    "http://localhost:8080/search",
-                    {query: $('#search-party').val()},
-                    (res) => {
-                        if (res.parties.length === 0) {
-                            $('#parties').text('No party was found!');
-                        }
-
-                        else {
-                            let htmlContent = '';
-
-                            res.parties.forEach(row => {
-                                htmlContent += `<a href="http://localhost:8080/parties/${row.id}/enter"><option value="${row.name}">${row.name}</option></a>`;
-                            });
-
-                            $('#parties').append(htmlContent);
-                        }
-                    }
-                );
-            });
-        });
-    </script>
+    <h1>hey :)</h1>
+    <a href="/login">Log in</a>
+    <a href="/signup">Sign up</a>
+    <br><br>
+    <form action="/logout" method="get">
+        <input type="submit" value="Log out">
+    </form>
 </body>
 </html>

@@ -4,15 +4,39 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log in :)</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <title>Log in</title>
 </head>
 <body>
-    <form action="/login" method="POST">
-        <h2>Login</h2>
-        <input type="text" name="nickname" id="nickname" placeholder="nickname"><br>
-        <input type="password" name="password" id="password" placeholder="password"><br>
-        <p id="msg"><%= msg %></p>
-        <input type="submit" value="Login">
+    <h1>Log in!</h1>
+    
+    <form action="" method="POST" id="form">
+        <label for="">Nickname</label><input type="text" name="nickname" id="nickname">
+        <br><br>
+        <label for="">Password</label><input type="password" name="password" id="password">
+        <p class="msg"></p>
+        <br>
+
+        <input type="submit" value="Log in">
     </form>
+    
+
+    <script>
+        $().ready(() => {
+            $('form').on('submit', (e) => {
+                e.preventDefault();
+                const nick = $("#nickname").val();
+                const pass = $("#password").val();
+
+                $.ajax({
+                    url: "/login",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({nick: nick, pass: pass}),
+                    success: function (res) { $(".msg").html(res.msg); }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

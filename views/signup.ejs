@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign up :)</title>
+    <title>Sign up</title>
 </head>
 <body>
-    <form action="/signup" method="POST">
-        <h2>Sign up</h2>
-        <input type="text" name="nickname" id="nickname" placeholder="nickname"><br>
-        <input type="password" name="password" id="password" placeholder="password"><br>
-        <p id="msg"><%= msg %></p>
+    <h1>Sign up!</h1>
+    
+    <form action="" method="POST">
+        <label for="">Nickname</label><input type="text" name="nickname" id="nickname">
+        <br><br>
+        <label for="">Password</label><input type="password" name="password" id="password">
+        <p class="msg"><%= msg %></p>
+        <br>
+
         <input type="submit" value="Sign up">
     </form>
 </body>
