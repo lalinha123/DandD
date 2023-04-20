@@ -1,4 +1,5 @@
 const { genid } = require(__dirname + '/misc');
+const crypto = require('crypto');
 
 // ------ OTHERS
 const path = require('path');
@@ -23,16 +24,24 @@ app.use(express.urlencoded({ extended: true}));
 const session = require('express-session');
 
 app.set('trust proxy', 1);
+
 app.use(session({
-    id: genid(30),
-    secret: 'sarnas mustache',
+    secret: 'aaaaa',
     resave: false,
     saveUninitialized: true,
     cookie: { 
         secure: true,
-        maxAge: 1000 * 60 * 60 * 24
+        maxAge: 1000 * 60 * 60 * 24 * 7, // expires in 7 days
+    },
+    user: null,
+    genid () {
+        return crypto.randomUUID();
     }
-}))
+}));
+
+const destroySession = (req) => {
+    req.session.user = null;
+}
 
 
-module.exports = { db, express, app, session };
+module.exports = { db, express, app, session, destroySession };

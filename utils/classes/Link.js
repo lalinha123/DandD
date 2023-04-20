@@ -8,13 +8,13 @@ module.exports = class Link {
         this.partyid = partyid;
     }
 
-    static init (userid, partyid) {
+    static get (userid, partyid) {
         const link = db.prepare('SELECT * FROM parties WHERE userid = ? AND partyid = ?').get(userid, partyid);
         return link ? new Link(link.id, userid, partyid) : '';
     }
 
     static create (userid, partyid) {
-        const id = genid(20);
-       // db.prepare('INSERT INTO links (id, userid, partyid) VALUES (?, ?, ?)').run(id, userid, partyid);
+        const id = genid(30);
+        db.prepare('INSERT INTO links (id, userid, partyid) VALUES (?, ?, ?)').run(id, userid, partyid);
     }
 }

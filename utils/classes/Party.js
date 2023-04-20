@@ -10,7 +10,7 @@ module.exports = class Party {
         this.master = master;
     }
 
-    static init (id) {
+    static get (id) {
         const party = db.prepare("SELECT * FROM parties WHERE id = ?").get(id);
         return new Party(id, party.name, party.password, party.maxmembers, party.minmembers, party.master);
     }
